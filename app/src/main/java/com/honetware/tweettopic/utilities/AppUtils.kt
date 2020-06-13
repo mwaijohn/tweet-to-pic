@@ -14,14 +14,21 @@ class AppUtils{
 
         suspend fun getStatusContent(status: Status): ImageContent{
 
+
             //get status owner
             val user = withContext(Dispatchers.IO){status.user}
             val profileUrl = user.profileImageURL
             val name = user.name
             val userName = user.screenName
             val statusText = status.text
-            val date = status.createdAt.time
-            return null
+            val date = status.createdAt
+            val favCount = status.favoriteCount
+            val retweetCount = status.retweetCount
+
+            //get if has media entity
+            val mediaEntity = status.mediaEntities
+
+            return ImageContent(profileUrl,name,userName,statusText,mediaEntity,favCount,retweetCount,date)
         }
     }
 }
