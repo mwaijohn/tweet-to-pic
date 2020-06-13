@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">Tweet to Pic</string>
+    <string name="twitter_callback">http://localhost/twitterapi/callback.php</string>
+    <string name="twitter_consumer_key">zmjGjIyma0vzbeF2XIpnhlO78</string>
+    <string name="twitter_consumer_secret">8qpa199vuiHINtQi54PYvFtp8qvCB8AUNMAbgGiatf9MOz873V</string>
+    <string name="twitter_oauth_verifier">oauth_verifier</string>
+
+    <string name="privacy_url">https://sites.google.com/view/apppolicyinformation</string>
+    <string name="action_privacy">privacy policy</string>
+
+</resources>
