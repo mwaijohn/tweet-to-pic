@@ -1,4 +1,4 @@
-package com.deletetweets.tweetdeleter.deletetweets.utilities
+package com.honetware.tweettopic.utilities
 
 import android.graphics.*
 import com.squareup.picasso.Transformation

@@ -13,6 +13,8 @@ import android.view.View
 import android.widget.Button
 import android.widget.LinearLayout
 import androidx.appcompat.app.AppCompatActivity
+import com.honetware.tweettopic.utilities.AppUtils
+import kotlinx.coroutines.*
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
@@ -28,6 +30,22 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
         linearLayout = findViewById(R.id.lyt)
         saveBtn = findViewById(R.id.button1)
         saveBtn?.setOnClickListener(this)
+
+
+        //perform action using tweet
+        val job = Job()
+        val uiScope = CoroutineScope(Dispatchers.Main + job)
+        uiScope.launch {
+            val twitter = withContext(Dispatchers.IO){
+                AppUtils.getTwitterObject(this@MainActivity)
+            }
+            val status = withContext(Dispatchers.IO){
+                AppUtils.getStatus(twitter,122222L)
+            }
+
+            val statusContent = AppUtils.getStatusContent(status)
+            AppUtils.toastMassage(this@MainActivity,statusContent.userName)
+        }
 
     }
 
