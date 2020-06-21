@@ -1,8 +1,13 @@
 package com.honetware.tweettopic.utilities
 
+import android.Manifest
+import android.app.Activity
 import android.content.Context
 import android.util.Log
+import android.view.View
 import android.widget.Toast
+import androidx.core.app.ActivityCompat
+import com.google.android.material.snackbar.Snackbar
 import com.honetware.tweettopic.R
 import com.honetware.tweettopic.model.ImageContent
 import kotlinx.coroutines.Dispatchers
@@ -10,6 +15,7 @@ import kotlinx.coroutines.withContext
 import twitter4j.Status
 import twitter4j.Twitter
 import twitter4j.TwitterFactory
+import twitter4j.auth.AccessToken
 import twitter4j.conf.ConfigurationBuilder
 
 
@@ -38,6 +44,21 @@ class AppUtils{
             return ImageContent(profileUrl,name,userName,statusText,mediaEntity,favCount,retweetCount,date)
         }
 
+        fun getTwitterObject(context: Context,token: String?,tokenSecret: String?): Twitter{
+            val builder = ConfigurationBuilder()
+
+            builder.setOAuthConsumerKey(context.getString(R.string.twitter_consumer_key))
+            builder.setOAuthConsumerSecret(context.getString(R.string.twitter_consumer_secret))
+            var accessToken: AccessToken? = null
+            try {
+                accessToken = AccessToken(token, tokenSecret)
+
+            }catch (ex: Exception){
+
+            }
+            return TwitterFactory(builder.build()).getInstance(accessToken)!!
+        }
+
         fun getTwitterObject(context: Context): Twitter{
             val builder = ConfigurationBuilder()
 
@@ -64,6 +85,20 @@ class AppUtils{
 
         fun logMassage(tag: String,massage: String){
             Log.d(tag,massage)
+        }
+
+        fun requestStoragePermission(view: View, activity: Activity){
+            if (ActivityCompat.shouldShowRequestPermissionRationale(activity, Manifest.permission.WRITE_EXTERNAL_STORAGE)){
+                Snackbar.make(view,"Enable write permission to external storage",Snackbar.LENGTH_INDEFINITE)
+                    .setAction("enable"
+                    ) {
+                        ActivityCompat.requestPermissions(activity, arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE),
+                            102)
+                    }.show()
+            }else{
+                ActivityCompat.requestPermissions(activity, arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE),
+                    102)
+            }
         }
     }
 }

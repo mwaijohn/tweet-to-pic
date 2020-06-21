@@ -9,5 +9,6 @@
     <string name="action_privacy">privacy policy</string>
     <string name="login_to_twitter">Login To Twitter</string>
     <string name="unable_to_login">Unable to log in</string>
+    <string name="unable_to_get_status">Unable to retrieve tweet</string>
 
 </resources>

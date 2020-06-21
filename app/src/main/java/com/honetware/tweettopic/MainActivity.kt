@@ -1,6 +1,8 @@
 package com.honetware.tweettopic
 
+import android.Manifest
 import android.content.Context
+import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Bitmap.CompressFormat
 import android.graphics.Canvas
@@ -13,14 +15,20 @@ import android.view.View
 import android.widget.Button
 import android.widget.LinearLayout
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import com.honetware.tweettopic.utilities.AppUtils
+import com.honetware.tweettopic.utilities.AppUtils.Companion.requestStoragePermission
+import com.honetware.tweettopic.utilities.AppUtils.Companion.toastMassage
+import com.honetware.tweettopic.utilities.SharedPrefs
+import com.honetware.tweettopic.utilities.SharedPrefs.Companion.read
 import kotlinx.coroutines.*
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
 
 
-class MainActivity : AppCompatActivity(), View.OnClickListener {
+class MainActivity : AppCompatActivity(), View.OnClickListener, ActivityCompat.OnRequestPermissionsResultCallback {
     private var linearLayout: LinearLayout? = null
     private var saveBtn: Button? = null
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -35,26 +43,43 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
         //perform action using tweet
         val job = Job()
         val uiScope = CoroutineScope(Dispatchers.Main + job)
+
+        val tokenSecret = read(SharedPrefs.PREF_KEY_OAUTH_SECRET, "no_token_secret")
+        val token = read(SharedPrefs.PREF_KEY_OAUTH_TOKEN, "no token")
+
         uiScope.launch {
             val twitter = withContext(Dispatchers.IO){
-                AppUtils.getTwitterObject(this@MainActivity)
+                AppUtils.getTwitterObject(this@MainActivity,token,tokenSecret)
             }
             val status = withContext(Dispatchers.IO){
-                AppUtils.getStatus(twitter,122222L)
+                try {
+                    return@withContext  AppUtils.getStatus(twitter,1274564386275782656L)
+                }catch (ex: Exception){
+                    return@withContext null
+                }
             }
 
-            val statusContent = AppUtils.getStatusContent(status)
-            AppUtils.toastMassage(this@MainActivity,statusContent.userName)
+            if (status != null){
+                val statusContent = AppUtils.getStatusContent(status)
+                toastMassage(this@MainActivity,statusContent.userName)
+            }else{
+                toastMassage(this@MainActivity,getString(R.string.unable_to_get_status))
+            }
         }
 
     }
 
     override fun onClick(v: View?) {
-        saveBitMap(this,linearLayout as View)
+        if (ContextCompat.checkSelfPermission(this,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED){
+            saveBitMap(this,linearLayout as View)
+        }else{
+            requestStoragePermission(saveBtn as View,this)
+        }
     }
 
     private fun saveBitMap(context: Context, drawView: View): File? {
-        val pictureFileDir = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), "Handcare")
+        val pictureFileDir = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), "TweetToPic")
         if (!pictureFileDir.exists()) {
             val isDirectoryCreated: Boolean = pictureFileDir.mkdirs()
             if (!isDirectoryCreated) Log.i("ATG", "Can't create directory to save the image")
@@ -104,6 +129,22 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
             MediaScannerConnection.scanFile(cntx, arrayOf(path), null) { path, uri -> }
         } catch (e: Exception) {
             e.printStackTrace()
+        }
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if(requestCode  == 102){
+            if (grantResults.size ==1 && grantResults[0] == PackageManager.PERMISSION_GRANTED){
+                //val imageName = project.name.replace(" ","")+System.currentTimeMillis().toString()
+                //Utilities.saveToGallery(this,pieChart,imageName)
+            }else{
+                //Toast.makeText(this,"Saving to gallery failed",Toast.LENGTH_LONG).show()
+            }
         }
     }
 }
