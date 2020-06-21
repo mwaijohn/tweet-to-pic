@@ -9,10 +9,8 @@ import com.honetware.tweettopic.utilities.SharedPrefs.Companion.write
 import com.honetware.tweettopic.R
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import twitter4j.Twitter
 import twitter4j.TwitterException
 import twitter4j.TwitterFactory
-import twitter4j.auth.AccessToken
 import twitter4j.auth.RequestToken
 import twitter4j.conf.ConfigurationBuilder
 
@@ -96,28 +94,6 @@ class KotlinLoginProcess {
             write(SharedPrefs.IS_LOGGEDIN,true)
 
             context.startActivity(Intent(context, MainActivity::class.java))
-        }
-
-        //get twitter object
-        fun getTwitterObject(context: Context,token: String,tokenSecret: String): Twitter?{
-            val builder = ConfigurationBuilder()
-
-            builder.setOAuthConsumerKey(context.getString(R.string.twitter_consumer_key))
-            builder.setOAuthConsumerSecret(context.getString(R.string.twitter_consumer_secret))
-
-            var twitter: Twitter? = null
-            try {
-                val accessToken = AccessToken(token, tokenSecret)
-                twitter = TwitterFactory(builder.build()).getInstance(accessToken)
-                return twitter
-            } catch (ex: IllegalArgumentException) {
-            }
-            return twitter
-        }
-
-        @Throws(TwitterException::class)
-        fun logout(twitter: Twitter, context: Context?) {
-            twitter.invalidateOAuth2Token()
         }
     }
 }

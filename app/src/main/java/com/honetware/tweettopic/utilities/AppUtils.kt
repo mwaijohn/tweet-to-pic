@@ -3,6 +3,11 @@ package com.honetware.tweettopic.utilities
 import android.Manifest
 import android.app.Activity
 import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.Color
+import android.media.MediaScannerConnection
+import android.os.Environment
 import android.util.Log
 import android.view.View
 import android.widget.Toast
@@ -17,6 +22,11 @@ import twitter4j.Twitter
 import twitter4j.TwitterFactory
 import twitter4j.auth.AccessToken
 import twitter4j.conf.ConfigurationBuilder
+import java.io.File
+import java.io.FileOutputStream
+import java.io.IOException
+import kotlin.math.ln
+import kotlin.math.pow
 
 
 class AppUtils{
@@ -26,8 +36,6 @@ class AppUtils{
         }
 
         suspend fun getStatusContent(status: Status): ImageContent{
-
-
             //get status owner
             val user = withContext(Dispatchers.IO){status.user}
             val profileUrl = user.profileImageURL
@@ -98,6 +106,71 @@ class AppUtils{
             }else{
                 ActivityCompat.requestPermissions(activity, arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE),
                     102)
+            }
+        }
+
+        fun convertToSuffix(count: Long): String? {
+            if (count < 1000) return "" + count
+            val exp =
+                (ln(count.toDouble()) / ln(1000.0)).toInt()
+            return String.format(
+                "%.1f%c",
+                count / 1000.0.pow(exp.toDouble()),
+                "kmgtpe"[exp - 1]
+            )
+        }
+
+        fun saveBitMap(context: Context, drawView: View): File? {
+            val pictureFileDir = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), "TweetToPic")
+            if (!pictureFileDir.exists()) {
+                val isDirectoryCreated: Boolean = pictureFileDir.mkdirs()
+                if (!isDirectoryCreated) Log.i("ATG", "Can't create directory to save the image")
+                return null
+            }
+            val filename: String = pictureFileDir.path + File.separator + System.currentTimeMillis() + ".jpg"
+            val pictureFile = File(filename)
+            val bitmap: Bitmap? = getBitmapFromView(drawView)
+            try {
+                pictureFile.createNewFile()
+                val oStream = FileOutputStream(pictureFile)
+                bitmap?.compress(Bitmap.CompressFormat.PNG, 100, oStream)
+                oStream.flush()
+                oStream.close()
+            } catch (e: IOException) {
+                e.printStackTrace()
+                Log.i("TAG", "There was an issue saving the image.")
+            }
+            scanGallery(context, pictureFile.absolutePath)
+            return pictureFile
+        }
+
+        //create bitmap from view and returns it
+        private fun getBitmapFromView(view: View): Bitmap? {
+            //Define a bitmap with the same size as the view
+            val returnedBitmap = Bitmap.createBitmap(view.width, view.height, Bitmap.Config.ARGB_8888)
+            //Bind a canvas to it
+            val canvas = Canvas(returnedBitmap)
+            //Get the view's background
+            val bgDrawable = view.background
+            if (bgDrawable != null) {
+                //has background drawable, then draw it on the canvas
+                bgDrawable.draw(canvas)
+            } else {
+                //does not have background drawable, then draw white background on the canvas
+                canvas.drawColor(Color.WHITE)
+            }
+            // draw the view on the canvas
+            view.draw(canvas)
+            //return the bitmap
+            return returnedBitmap
+        }
+
+        // used for scanning gallery
+        private fun scanGallery(context: Context, path: String) {
+            try {
+                MediaScannerConnection.scanFile(context, arrayOf(path), null) { path, uri -> }
+            } catch (e: Exception) {
+                e.printStackTrace()
             }
         }
     }

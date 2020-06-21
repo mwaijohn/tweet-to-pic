@@ -1,15 +1,9 @@
 package com.honetware.tweettopic
 
 import android.Manifest
-import android.content.Context
 import android.content.pm.PackageManager
-import android.graphics.Bitmap
-import android.graphics.Bitmap.CompressFormat
-import android.graphics.Canvas
-import android.graphics.Color
-import android.media.MediaScannerConnection
 import android.os.Bundle
-import android.os.Environment
+import android.text.Html
 import android.util.Log
 import android.view.View
 import android.widget.Button
@@ -19,9 +13,17 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.honetware.tweettopic.utilities.AppUtils
 import com.honetware.tweettopic.utilities.AppUtils.Companion.requestStoragePermission
+import com.honetware.tweettopic.utilities.AppUtils.Companion.saveBitMap
 import com.honetware.tweettopic.utilities.AppUtils.Companion.toastMassage
+import com.honetware.tweettopic.utilities.CircleTransform
 import com.honetware.tweettopic.utilities.SharedPrefs
 import com.honetware.tweettopic.utilities.SharedPrefs.Companion.read
+import com.squareup.picasso.Picasso
+import com.twitter.sdk.android.core.DefaultLogger
+import com.twitter.sdk.android.core.Twitter
+import com.twitter.sdk.android.core.TwitterAuthConfig
+import com.twitter.sdk.android.core.TwitterConfig
+import kotlinx.android.synthetic.main.tweet_card.*
 import kotlinx.coroutines.*
 import java.io.File
 import java.io.FileOutputStream
@@ -39,6 +41,16 @@ class MainActivity : AppCompatActivity(), View.OnClickListener, ActivityCompat.O
         saveBtn = findViewById(R.id.button1)
         saveBtn?.setOnClickListener(this)
 
+        //config twitter with API Key and Secret Key
+        val config = TwitterConfig.Builder(this)
+            .logger(DefaultLogger(Log.DEBUG))
+            .twitterAuthConfig(TwitterAuthConfig(getString(R.string.twitter_consumer_key),
+                getString(R.string.twitter_consumer_secret)))
+        .debug(true)
+            .build();
+
+        //initialize twitter
+        Twitter.initialize(config)
 
         //perform action using tweet
         val job = Job()
@@ -62,11 +74,28 @@ class MainActivity : AppCompatActivity(), View.OnClickListener, ActivityCompat.O
             if (status != null){
                 val statusContent = AppUtils.getStatusContent(status)
                 toastMassage(this@MainActivity,statusContent.userName)
+                username.text = statusContent.userName
+                name.text = statusContent.name
+                tweet_text.text = Html.fromHtml(statusContent.statusText)
+                Picasso.get()
+                    .load(statusContent.userProfile)
+                    .error(R.drawable.ic_launcher_background)
+                    .transform(CircleTransform())
+                    .into(thumbnail)
+                if (statusContent.imageEntities?.isNotEmpty()!!){
+                    Picasso.get()
+                        .load(statusContent.imageEntities!![0].mediaURL)
+                        .resize(400,300)
+                        .into(image_entity)
+                }else{
+                    image_entity.visibility = View.GONE
+                }
+                retweet_count.text = AppUtils.convertToSuffix(statusContent.retweetCount.toLong())
+                fav_count.text = AppUtils.convertToSuffix(statusContent.favCount.toLong())
             }else{
                 toastMassage(this@MainActivity,getString(R.string.unable_to_get_status))
             }
         }
-
     }
 
     override fun onClick(v: View?) {
@@ -78,72 +107,13 @@ class MainActivity : AppCompatActivity(), View.OnClickListener, ActivityCompat.O
         }
     }
 
-    private fun saveBitMap(context: Context, drawView: View): File? {
-        val pictureFileDir = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), "TweetToPic")
-        if (!pictureFileDir.exists()) {
-            val isDirectoryCreated: Boolean = pictureFileDir.mkdirs()
-            if (!isDirectoryCreated) Log.i("ATG", "Can't create directory to save the image")
-            return null
-        }
-        val filename: String = pictureFileDir.path + File.separator + System.currentTimeMillis() + ".jpg"
-        val pictureFile = File(filename)
-        val bitmap: Bitmap? = getBitmapFromView(drawView)
-        try {
-            pictureFile.createNewFile()
-            val oStream = FileOutputStream(pictureFile)
-            bitmap?.compress(CompressFormat.PNG, 100, oStream)
-            oStream.flush()
-            oStream.close()
-        } catch (e: IOException) {
-            e.printStackTrace()
-            Log.i("TAG", "There was an issue saving the image.")
-        }
-        scanGallery(context, pictureFile.absolutePath)
-        return pictureFile
-    }
-
-    //create bitmap from view and returns it
-    private fun getBitmapFromView(view: View): Bitmap? {
-        //Define a bitmap with the same size as the view
-        val returnedBitmap = Bitmap.createBitmap(view.width, view.height, Bitmap.Config.ARGB_8888)
-        //Bind a canvas to it
-        val canvas = Canvas(returnedBitmap)
-        //Get the view's background
-        val bgDrawable = view.background
-        if (bgDrawable != null) {
-            //has background drawable, then draw it on the canvas
-            bgDrawable.draw(canvas)
-        } else {
-            //does not have background drawable, then draw white background on the canvas
-            canvas.drawColor(Color.WHITE)
-        }
-        // draw the view on the canvas
-        view.draw(canvas)
-        //return the bitmap
-        return returnedBitmap
-    }
-
-    // used for scanning gallery
-    private fun scanGallery(cntx: Context, path: String) {
-        try {
-            MediaScannerConnection.scanFile(cntx, arrayOf(path), null) { path, uri -> }
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
-    }
-
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray
-    ) {
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if(requestCode  == 102){
             if (grantResults.size ==1 && grantResults[0] == PackageManager.PERMISSION_GRANTED){
-                //val imageName = project.name.replace(" ","")+System.currentTimeMillis().toString()
-                //Utilities.saveToGallery(this,pieChart,imageName)
+                saveBitMap(this,linearLayout as View)
             }else{
-                //Toast.makeText(this,"Saving to gallery failed",Toast.LENGTH_LONG).show()
+                toastMassage(this,getString(R.string.saving_failed))
             }
         }
     }
