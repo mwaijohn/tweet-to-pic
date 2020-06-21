@@ -42,59 +42,8 @@
         android:layout_height="wrap_content"
         android:src="@drawable/ic_launcher_background" />
     <LinearLayout
-        android:id="@+id/main_layout"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical"
-        android:padding="10dp">
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="tweet_view"
-            android:textColor="@android:color/black"
-            android:textSize="18sp" />
-
-        <!-- TweetView with Dark Style theme, here pass any Tweet Id in
-         place of tw__tweet_id  -->
-        <com.twitter.sdk.android.tweetui.TweetView
-            android:id="@+id/tweet_view"
-            style="@style/tw__TweetDarkWithActionsStyle"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            app:tw__tweet_id="1274564386275782656" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="5dp"
-            android:text="compact_tweet_view"
-            android:textColor="@android:color/black"
-            android:textSize="18sp" />
-
-        <!-- CompactTweetView with Light Style theme, here pass any
-        Tweet Id in place of tw__tweet_id  -->
-        <com.twitter.sdk.android.tweetui.CompactTweetView
-            android:id="@+id/compact_tweet_view"
-            style="@style/tw__TweetLightWithActionsStyle"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            app:tw__tweet_id="1274564386275782656" />
-
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="5dp"
-            android:text="tweet_view_runtime"
-            android:textColor="@android:color/black"
-            android:textSize="18sp" />
-
-        <!--  Here the runtime Tweet will be shown and will be added in runtime -->
-
-    </LinearLayout>
-    <LinearLayout
-        android:layout_width="match_parent"
+        android:padding="15sp"
         android:layout_height="wrap_content">
         <include
             android:id="@+id/tweet_card"

@@ -9,6 +9,7 @@ import android.view.View
 import android.widget.Button
 import android.widget.LinearLayout
 import androidx.appcompat.app.AppCompatActivity
+import androidx.cardview.widget.CardView
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.honetware.tweettopic.utilities.AppUtils
@@ -33,12 +34,14 @@ import java.io.IOException
 class MainActivity : AppCompatActivity(), View.OnClickListener, ActivityCompat.OnRequestPermissionsResultCallback {
     private var linearLayout: LinearLayout? = null
     private var saveBtn: Button? = null
+    lateinit var statusCard: CardView
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
         linearLayout = findViewById(R.id.lyt)
         saveBtn = findViewById(R.id.button1)
+        statusCard = findViewById(R.id.status_card)
         saveBtn?.setOnClickListener(this)
 
         //config twitter with API Key and Secret Key
@@ -101,7 +104,7 @@ class MainActivity : AppCompatActivity(), View.OnClickListener, ActivityCompat.O
     override fun onClick(v: View?) {
         if (ContextCompat.checkSelfPermission(this,
                 Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED){
-            saveBitMap(this,linearLayout as View)
+            saveBitMap(this,statusCard as View)
         }else{
             requestStoragePermission(saveBtn as View,this)
         }
