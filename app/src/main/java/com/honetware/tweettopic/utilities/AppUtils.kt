@@ -1,6 +1,7 @@
 package com.honetware.tweettopic.utilities
 
 import android.content.Context
+import android.util.Log
 import android.widget.Toast
 import com.honetware.tweettopic.R
 import com.honetware.tweettopic.model.ImageContent
@@ -59,6 +60,10 @@ class AppUtils{
 
         fun toastMassage(context: Context, massage: String) {
             Toast.makeText(context, massage, Toast.LENGTH_SHORT).show()
+        }
+
+        fun logMassage(tag: String,massage: String){
+            Log.d(tag,massage)
         }
     }
 }

@@ -17,5 +17,5 @@
         android:textSize="18sp"
         android:textColor="#fafafa"
         android:background="@color/colorPrimary"
-        android:text="Login To Twitter"/>
+        android:text="@string/login_to_twitter"/>
 </RelativeLayout>
